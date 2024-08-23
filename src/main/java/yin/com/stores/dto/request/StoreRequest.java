@@ -12,5 +12,4 @@ public class StoreRequest {
     String name;
     String address;
 
-
 }

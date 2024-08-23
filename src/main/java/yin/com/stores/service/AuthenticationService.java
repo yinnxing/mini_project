@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import yin.com.stores.dto.request.AuthenticationRequest;
 import yin.com.stores.dto.request.IntrospectRequest;
 import yin.com.stores.dto.request.LogoutRequest;
@@ -116,19 +117,20 @@ public class AuthenticationService {
                 .build();
     }
 
-    private String generateToken(User user) {
-        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getUsername())
-                .issuer("yin.com")
-                .issueTime(new Date())
-                .expirationTime(new Date(new Date().getTime() + 20000))
-                .jwtID(UUID.randomUUID().toString())
-                .claim("scope", buildScope(user))
-                .build();
+    private String generateToken(User user) { JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+            .subject(user.getUsername())
+            .issuer("yin.com")
+            .issueTime(new Date())
+            .expirationTime(new Date(new Date().getTime() + 200000))
+            .jwtID(UUID.randomUUID().toString())
+            .claim("scope", buildScope(user))
+            .claim("userId", user.getId())
+            .build();
         JWSObject jwsObject = new JWSObject(
                 new JWSHeader(JWSAlgorithm.HS512),
                 new Payload(jwtClaimsSet.toJSONObject())
         );
+
         try {
             jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
             return jwsObject.serialize();
@@ -159,9 +161,15 @@ public class AuthenticationService {
 
     private String buildScope(User user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
-                stringJoiner.add("ROLE_" + user.getRole());
+        stringJoiner.add("ROLE_" + user.getRole());
+        if (!CollectionUtils.isEmpty(user.getStores())){
+            user.getStores()
+                    .forEach(store -> stringJoiner.add(store.getStoreId()));
+        }
+
         return stringJoiner.toString();
     }
+
 
 
 }

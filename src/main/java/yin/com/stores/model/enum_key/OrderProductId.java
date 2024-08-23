@@ -10,9 +10,8 @@ import java.io.Serializable;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class StoreProductId implements Serializable {
-    String storeId;
+
+public class OrderProductId implements Serializable{
+    String orderId;
     String productId;
-
-
 }

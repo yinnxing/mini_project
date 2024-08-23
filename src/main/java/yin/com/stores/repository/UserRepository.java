@@ -13,11 +13,13 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User,String> {
     boolean existsByUsername(String username);
     Optional<User> findByUsername(String username);
+    Optional<User> findByIdAndDeletedFalse(String userId);
+
 
     List<User> findAllByDeleted(boolean isDeleted);
 
     @Query(value = "SELECT u.* FROM User u JOIN user_stores us ON u.id = us.user_id " +
-            "JOIN Store s ON us.stores_id = s.id WHERE s.id = :storeId AND u.deleted = false " +
+            "JOIN Store s ON us.stores_store_id = s.store_id WHERE s.store_id = :storeId AND u.deleted = false " +
             "AND u.role = 'EMPLOYEE'", nativeQuery = true)
     List<User> findUsersByStoreIdAndRole(@Param("storeId") String storeId);
 

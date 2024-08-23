@@ -1,6 +1,5 @@
-package yin.com.stores.configuration;
+package yin.com.stores.auth;
 
-import org.apache.catalina.filters.CorsFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -10,21 +9,21 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Collection;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
-    private final String[] PUBLIC_ENDPOINTS = {"/users", "auth/token", "auth/introspect",
-    "auth/logout", "auth/refresh"};
+    private final String[] PUBLIC_ENDPOINTS = {"api/users", "api/auth/token", "api/auth/introspect",
+    "api/auth/logout", "api/auth/refresh"};
     @Value("${jwt.signer.key}")
     private String SIGNER_KEY;
     @Autowired
@@ -54,14 +53,22 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder(10);
     }
 
-   @Bean
-   JwtAuthenticationConverter jwtAuthenticationConverter(){
-       JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-       jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
-       JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-       jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
+    @Bean
+    JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+        jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
 
-       return jwtAuthenticationConverter;
-   }
+        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
+
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            Collection<GrantedAuthority> authorities = jwtGrantedAuthoritiesConverter.convert(jwt);
+            System.out.println("JWT Authorities: " + authorities);
+            return authorities;
+        });
+
+        return jwtAuthenticationConverter;
+    }
+
 
 }

@@ -3,30 +3,32 @@ package yin.com.stores.model;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import yin.com.stores.model.enum_key.StoreProductId;
+import yin.com.stores.model.enum_key.OrderProductId;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-@Entity
-@Table(name = "store_product")
-@IdClass(StoreProductId.class)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class StoreProduct {
+@Entity
+@Table(name = "order_product")
+@IdClass(OrderProductId.class)
+
+public class OrderProduct {
     @Id
-    String storeId;
+    String orderId;
     @Id
     String productId;
+    Long quantity;
+    Double price;
     @ManyToOne
-    @JoinColumn(name = "storeId", insertable = false, updatable = false)
-    Store store;
+    @JoinColumn(name = "orderId", insertable = false, updatable = false)
+    Order order;
 
     @ManyToOne
     @JoinColumn(name = "productId", insertable = false, updatable = false)
     Product product;
 
-    Long stock_quantity;
 
 }
