@@ -11,5 +11,6 @@ public interface StoreProductMapper {
     StoreProductRequest toStoreProductDTO(StoreProduct storeProduct);
     @Mapping(target = "product", ignore = true)
     @Mapping(target = "store", ignore = true)
+    @Mapping(target = "storeId", ignore = true)
     StoreProduct toStoreProduct(StoreProductRequest dto);
 }

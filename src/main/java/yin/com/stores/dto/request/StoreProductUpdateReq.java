@@ -6,13 +6,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class StoreProductRequest {
-    String productId;
+public class StoreProductUpdateReq {
     Long stock_quantity;
 }

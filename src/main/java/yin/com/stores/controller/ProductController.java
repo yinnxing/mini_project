@@ -22,6 +22,29 @@ public class ProductController {
                 .result(productService.getProducts())
                 .build();
     }
+    @GetMapping("/{productId}")
+    ApiResponse<ProductDTO> getProductById(@PathVariable String productId){
+        return ApiResponse.<ProductDTO>builder()
+                .result(productService.getProductById(productId))
+                .build();
+    }
+    @PutMapping("/{productId}")
+    ApiResponse<ProductDTO> updateProduct(@PathVariable String productId, @RequestBody ProductDTO dto){
+        return ApiResponse.<ProductDTO>builder()
+                .result(productService.updateProduct(productId, dto))
+                .build();
+
+    }
+
+    //@GetMapping("/{productName}")
+    //ApiResponse<ProductDTO> getProductByName(@PathVariable String productName){
+    //    return ApiResponse.<ProductDTO>builder()
+    //            .result(productService.getProductByName(productName))
+    //            .build();
+    //}
+
+
+
     @PostMapping
     ApiResponse<ProductDTO> createProduct(@RequestBody ProductDTO dto){
         return ApiResponse.<ProductDTO>builder()
@@ -29,5 +52,13 @@ public class ProductController {
                 .build();
 
     }
+    @DeleteMapping("/{productId}")
+    ApiResponse<String> deleteProduct(@PathVariable String productId){
+      productService.deleteProduct(productId);
+      return ApiResponse.<String>builder()
+              .message("Product has been deleted")
+              .build();
+    }
+
 
 }

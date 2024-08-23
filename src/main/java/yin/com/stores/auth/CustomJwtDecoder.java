@@ -1,4 +1,4 @@
-package yin.com.stores.configuration;
+package yin.com.stores.auth;
 
 
 import com.nimbusds.jose.JOSEException;

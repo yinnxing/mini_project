@@ -3,6 +3,7 @@ package yin.com.stores.service.impl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,6 @@ public class UserServiceImp implements UserService {
     PasswordEncoder passwordEncoder;
 
     @Override
-    @PreAuthorize("hasRole('ADMIN')")
     public UserResponse createUser(UserCreationRequest request) {
         if(userRepository.existsByUsername(request.getUsername())){
             throw new AppException(ErrorCode.USER_EXISTED);
@@ -49,6 +49,7 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getUsers() {
         List<User> users = userRepository.findAllByDeleted(false);
         return users.stream().map(userMapper::toUserResponse).toList();
@@ -56,14 +57,14 @@ public class UserServiceImp implements UserService {
 
     @Override
     public UserResponse getUser(String userId) {
-        User user = userRepository.findById(userId).orElseThrow(
+        User user = userRepository.findByIdAndDeletedFalse(userId).orElseThrow(
                 () -> new AppException(ErrorCode.USER_NOT_EXIST));
         return userMapper.toUserResponse(user);
     }
 
     @Override
     public UserResponse updateUser(String id, UserUpdateRequest request) {
-        User user = userRepository.findById(id).orElseThrow(
+        User user = userRepository.findByIdAndDeletedFalse(id).orElseThrow(
                 () -> new AppException(ErrorCode.USER_NOT_EXIST)
         );
        userMapper.updateUser(user, request);
@@ -74,6 +75,16 @@ public class UserServiceImp implements UserService {
 
     @Override
     public void deleteUserById(String userId) {
-        userRepository.deleteById(userId);
+        User user = userRepository.findByIdAndDeletedFalse(userId).orElseThrow(
+                () -> new AppException(ErrorCode.USER_NOT_EXIST)
+        );
+        user.setDeleted(true);
+        userRepository.save(user);
+    }
+    @PostAuthorize("hasRole('MANAGER')")
+    @Override
+    public List<UserResponse> getEmployeesByStore(String storeId) {
+        List<User> users = userRepository.findUsersByStoreIdAndRole(storeId);
+        return users.stream().map(userMapper::toUserResponse).collect(Collectors.toList());
     }
 }

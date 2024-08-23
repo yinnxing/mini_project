@@ -5,13 +5,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import yin.com.stores.dto.request.StoreRequest;
-import yin.com.stores.dto.response.ApiResponse;
 import yin.com.stores.dto.response.StoreResponse;
 import yin.com.stores.exception.AppException;
 import yin.com.stores.exception.ErrorCode;
 import yin.com.stores.mapper.StoreMapper;
 import yin.com.stores.model.Store;
 import yin.com.stores.model.User;
+import yin.com.stores.repository.StoreProductRepository;
 import yin.com.stores.repository.StoreRepository;
 import yin.com.stores.repository.UserRepository;
 import yin.com.stores.service.interf.StoreService;
@@ -24,7 +24,8 @@ import java.util.List;
 public class StoreServiceImp implements StoreService {
     StoreRepository storeRepository;
     StoreMapper storeMapper;
-    private final UserRepository userRepository;
+    UserRepository userRepository;
+    StoreProductRepository storeProductRepository;
 
     @Override
     public List<StoreResponse> getStores() {
@@ -43,7 +44,7 @@ public class StoreServiceImp implements StoreService {
 
     @Override
     public void deleteStore(String storeId) {
-        Store store = storeRepository.findById(storeId).orElseThrow(
+        Store store = storeRepository.findByStoreIdAndDeletedFalse(storeId).orElseThrow(
                 () -> new AppException(ErrorCode.STORE_NOT_FOUND)
         );
         store.setDeleted(true);
@@ -52,7 +53,6 @@ public class StoreServiceImp implements StoreService {
             user.setDeleted(true);
             userRepository.save(user);
         }
-
     }
 
 
