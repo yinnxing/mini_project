@@ -1,8 +1,10 @@
-package yin.com.stores.dto;
+package yin.com.stores.dto.response;
 
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import yin.com.stores.dto.OrderProductDTO;
+
 import java.time.LocalDate;
 import java.util.List;
 

@@ -4,14 +4,9 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import yin.com.stores.dto.OrderResponse;
+import yin.com.stores.dto.response.OrderResponse;
 import yin.com.stores.dto.OrderProductDTO;
 import yin.com.stores.dto.request.OrderRequest;
 import yin.com.stores.exception.AppException;
@@ -37,6 +32,7 @@ public class OrderServiceImp implements OrderService {
     UserRepository userRepository;
     ProductRepository productRepository;
     OrderMapper orderMapper;
+    StoreProductRepository storeProductRepository;
 
     @Override
     @Transactional
@@ -53,8 +49,15 @@ public class OrderServiceImp implements OrderService {
         order.setOrder_date(LocalDate.now());
         for(OrderProductDTO op : dto.getOrderProducts()){
             String productId = op.getProductId();
+            if(!storeProductRepository.existsByStoreIdAndProductId(storeId, productId)){
+                throw new AppException(ErrorCode.PRODUCT_NOT_FOUND_IN_STORE);
+            }
             Product product = productRepository.findByProductIdAndDeletedFalse(productId)
                     .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+            StoreProduct sp = storeProductRepository.findByStoreIdAndProductId(storeId, productId);
+            if(op.getQuantity() > sp.getStock_quantity()){
+                throw new AppException(ErrorCode.INSUFFICIENT_STOCK);
+            }
             op.setPrice(product.getPrice());
             op.setOrderId(order.getOrderId());
             orderProductRepository.save(orderProductMapper.toOrderProduct(op));
@@ -69,6 +72,23 @@ public class OrderServiceImp implements OrderService {
         orderResponse.setOrderProducts(dto.getOrderProducts());
         return orderResponse;
 
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority(#storeId) and hasRole('MANAGER')")
+    public List<OrderResponse> getStoreOrders(String storeId) {
+        List<Order> orders = orderRepository.findByStore_StoreId(storeId);
+
+        List<OrderResponse> orderResponses = orders.stream()
+                .map(order -> {
+                    OrderResponse orderResponse = orderMapper.toOrderResponse(order);
+                    orderResponse.setStoreId(order.getStore().getStoreId());
+                    orderResponse.setUserId(order.getUser().getId());
+                    return orderResponse;
+                })
+                .toList();
+
+        return orderResponses;
     }
 
     private Double calculateTotalPrice(List<OrderProductDTO> orderProductDTOS){

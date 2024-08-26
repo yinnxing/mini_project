@@ -31,10 +31,9 @@ public class UserServiceImp implements UserService {
     UserMapper userMapper;
     StoreRepository storeRepository;
     PasswordEncoder passwordEncoder;
-
     @Override
     public UserResponse createUser(UserCreationRequest request) {
-        if(userRepository.existsByUsername(request.getUsername())){
+        if(userRepository.existsByUsernameAndDeletedFalse(request.getUsername())){
             throw new AppException(ErrorCode.USER_EXISTED);
         }
         User user = userMapper.toUser(request);
@@ -83,8 +82,8 @@ public class UserServiceImp implements UserService {
     }
     @PostAuthorize("hasRole('MANAGER')")
     @Override
-    public List<UserResponse> getEmployeesByStore(String storeId) {
-        List<User> users = userRepository.findUsersByStoreIdAndRole(storeId);
+    public List<UserResponse> getEmployeesByStore(String storeId, String role) {
+        List<User> users = userRepository.findByStores_StoreIdAndRoleAndDeletedFalse(storeId, role);
         return users.stream().map(userMapper::toUserResponse).collect(Collectors.toList());
     }
 }

@@ -1,11 +1,13 @@
 package yin.com.stores.service.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import yin.com.stores.dto.request.StoreRequest;
 import yin.com.stores.dto.response.StoreResponse;
+import yin.com.stores.enums.Role;
 import yin.com.stores.exception.AppException;
 import yin.com.stores.exception.ErrorCode;
 import yin.com.stores.mapper.StoreMapper;
@@ -25,11 +27,10 @@ public class StoreServiceImp implements StoreService {
     StoreRepository storeRepository;
     StoreMapper storeMapper;
     UserRepository userRepository;
-    StoreProductRepository storeProductRepository;
 
     @Override
     public List<StoreResponse> getStores() {
-        List<Store> stores = storeRepository.findAll();
+        List<Store> stores = storeRepository.findAllByDeleted(false);
         return stores.stream().map(storeMapper::toStoreResponse).toList();
     }
 
@@ -43,16 +44,24 @@ public class StoreServiceImp implements StoreService {
     }
 
     @Override
+    @Transactional
     public void deleteStore(String storeId) {
         Store store = storeRepository.findByStoreIdAndDeletedFalse(storeId).orElseThrow(
                 () -> new AppException(ErrorCode.STORE_NOT_FOUND)
         );
         store.setDeleted(true);
-        List<User> users = userRepository.findUsersByStoreIdAndRole(storeId);
+        List<User> users = userRepository.findByStores_StoreIdAndRoleAndDeletedFalse(storeId, Role.EMPLOYEE.name());
         for(User user : users){
             user.setDeleted(true);
             userRepository.save(user);
         }
+        User manager = userRepository.findManagerByStoreId(storeId);
+        if(storeRepository.findStoresByUserIdAndDeletedFalse(manager.getId()) == null){
+            manager.setDeleted(true);
+            userRepository.save(manager);
+        }
+
+
     }
 
 

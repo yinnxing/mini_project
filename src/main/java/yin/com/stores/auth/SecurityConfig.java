@@ -22,7 +22,7 @@ import java.util.Collection;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    private final String[] PUBLIC_ENDPOINTS = {"api/users", "api/auth/token", "api/auth/introspect",
+    private final String[] PUBLIC_ENDPOINTS = { "api/auth/token", "api/auth/introspect",
     "api/auth/logout", "api/auth/refresh"};
     @Value("${jwt.signer.key}")
     private String SIGNER_KEY;
@@ -32,8 +32,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests((requests) -> requests
                 .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
-                .requestMatchers(HttpMethod.GET, "/users").authenticated()
-                .anyRequest().permitAll());
+                .anyRequest().authenticated());
         http.oauth2ResourceServer(oauth2 ->
                 oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(customJwtDecoder)
                         .jwtAuthenticationConverter(jwtAuthenticationConverter())
@@ -57,10 +56,8 @@ public class SecurityConfig {
     JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
         jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
-
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
-
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
             Collection<GrantedAuthority> authorities = jwtGrantedAuthoritiesConverter.convert(jwt);
             System.out.println("JWT Authorities: " + authorities);

@@ -1,7 +1,7 @@
 package yin.com.stores.mapper;
 
 import org.mapstruct.Mapper;
-import yin.com.stores.dto.OrderResponse;
+import yin.com.stores.dto.response.OrderResponse;
 import yin.com.stores.model.Order;
 
 @Mapper(componentModel = "spring")

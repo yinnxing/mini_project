@@ -12,5 +12,5 @@ public interface UserService {
     public UserResponse getUser(String userId);
     public UserResponse updateUser(String id, UserUpdateRequest request);
     public void deleteUserById(String userId);
-    public List<UserResponse> getEmployeesByStore(String storeId);
+    public List<UserResponse> getEmployeesByStore(String storeId, String role);
 }

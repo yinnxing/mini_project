@@ -55,7 +55,6 @@ public class StoreProductServiceImp implements StoreProductService {
 
     @Override
     @PreAuthorize("hasAuthority(#storeId) and hasRole('MANAGER')")
-
     public List<StoreProductDTO> getStoreProduct(String storeId) {
         Store store = storeRepository.findByStoreIdAndDeletedFalse(storeId)
                 .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
@@ -66,8 +65,11 @@ public class StoreProductServiceImp implements StoreProductService {
                .collect(Collectors.toList());
     }
     @PreAuthorize("hasAuthority(#storeId) and hasRole('MANAGER')")
-
     public StoreProductDTO updateStoreProduct(String storeId, String productId, StoreProductUpdateReq request){
+        Store store = storeRepository.findByStoreIdAndDeletedFalse(storeId)
+                .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
+        Product product = productRepository.findByProductIdAndDeletedFalse(productId)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
         StoreProduct sp = storeProductRepository.findByStoreIdAndProductId(storeId, productId);
         sp.setStock_quantity(request.getStock_quantity());
         storeProductRepository.save(sp);
